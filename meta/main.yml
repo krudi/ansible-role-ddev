@@ -1,0 +1,22 @@
+---
+galaxy_info:
+  role_name: nvm
+  description: A role for Ansible, that installs DDEV for launching local PHP development environments
+  license: MIT
+  min_ansible_version: "2.0"
+  author: krudi
+  platforms:
+    - name: Ubuntu
+      versions:
+        - all
+    - name: Debian
+      versions:
+        - all
+  galaxy_tags:
+    - ddev
+    - docker
+
+dependencies:
+  - name: geerlingguy.docker
+    src: https://github.com/geerlingguy/ansible-role-docker
+    version: master

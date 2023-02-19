@@ -1,0 +1,4 @@
+---
+- name: Loading a task to install DDEV
+  include_tasks: setup-ddev.yml
+  when: ansible_os_family == "Debian"
