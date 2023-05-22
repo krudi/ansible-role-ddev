@@ -1,6 +1,6 @@
 # ansible-role-ddev
 
-A role for [Ansible](https://github.com/ansible/ansible), that installs [DDEV](https://ddev.readthedocs.io/en/stable) for launching local PHP development environments
+A role for [Ansible](https://github.com/ansible/ansible), that installs [DDEV](https://ddev.readthedocs.io/en/stable) for launching local PHP development environments.
 
 ## Requirements
 
