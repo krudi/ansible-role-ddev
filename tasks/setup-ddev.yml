@@ -1,0 +1,49 @@
+---
+- name: Ensure APT package cache is updated
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 600
+
+- name: Ensure the directory for storing APT keyrings exists and has the correct permissions
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+  when: ddev.install | default(ddev.install)
+
+- name: Download the GPG key for DDEV from the specified URL to a temporary location
+  ansible.builtin.get_url:
+    url: https://pkg.ddev.com/apt/gpg.key
+    dest: /tmp/ddev.gpg.key
+    mode: "0644"
+  when: ddev.install | default(ddev.install)
+
+- name: Convert the downloaded DDEV GPG key to a format suitable for APT and add it to the keyring directory
+  ansible.builtin.command: >
+    gpg --dearmor -o /etc/apt/keyrings/ddev.gpg /tmp/ddev.gpg.key
+  args:
+    creates: /etc/apt/keyrings/ddev.gpg
+  when: ddev.install | default(ddev.install)
+
+- name: Ensure the DDEV GPG key in the keyring directory has the correct read permissions for all users
+  ansible.builtin.file:
+    path: /etc/apt/keyrings/ddev.gpg
+    mode: "0644"
+  when: ddev.install | default(ddev.install)
+
+- name: Add the DDEV release repository to APT, allowing DDEV packages to be installed and updated from it.
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/ddev.gpg] https://pkg.ddev.com/apt/ * *"
+    state: present
+  when: ddev.install | default(ddev.install)
+
+- name: Update the APT package list to include the latest information from all configured repositories, including DDEV
+  ansible.builtin.apt:
+    update_cache: yes
+  when: ddev.install | default(ddev.install)
+
+- name: Install the DDEV package using APT
+  ansible.builtin.apt:
+    name: ddev
+    state: present
+  when: ddev.install | default(ddev.install)

@@ -1,0 +1,8 @@
+---
+- name: Loading a task to install dependencies (Debian)
+  ansible.builtin.include_tasks: setup-dependencies.yml
+  when: ansible_os_family == "Debian"
+
+- name: Loading a task to install DDEV (Debian)
+  ansible.builtin.include_tasks: setup-ddev.yml
+  when: ansible_os_family == "Debian"
