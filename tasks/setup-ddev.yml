@@ -40,6 +40,7 @@
 - name: Update the APT package list to include the latest information from all configured repositories, including DDEV
   ansible.builtin.apt:
     update_cache: yes
+    cache_valid_time: 600
   when: ddev.install | default(ddev.install)
 
 - name: Install the DDEV package using APT
