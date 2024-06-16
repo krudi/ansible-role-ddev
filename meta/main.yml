@@ -1,6 +1,6 @@
 ---
 galaxy_info:
-  role_name: nvm
+  role_name: ddev
   description: A role for Ansible, that installs DDEV for launching local PHP development environments.
   license: MIT
   min_ansible_version: "2.0"
