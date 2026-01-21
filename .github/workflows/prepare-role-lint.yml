@@ -1,19 +1,26 @@
----
-name: Code linting with ansible-lint
+name: Lint
 
 on:
-  pull_request:
-  push:
-    branches:
-      - main
+    pull_request:
+        types:
+            - opened
+            - synchronize
+            - reopened
+
+concurrency:
+    group: lint-${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+permissions:
+    contents: read
 
 jobs:
-  prepare:
-    name: Lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout the current branch
-        uses: actions/checkout@v4
+    lint:
+        if: ${{ github.actor != 'dependabot[bot]' }}
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout the current branch
+              uses: actions/checkout@v4
 
-      - name:  Run ansible-lint linting command
-        uses: ansible/ansible-lint@v25.8.1
+            - name: Run ansible-lint linting command
+              uses: ansible/ansible-lint@v25.8.1
