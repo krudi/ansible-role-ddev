@@ -1,4 +1,5 @@
 ---
+# Default dependencies.
 ddev_dependencies:
   - apt-transport-https
   - ca-certificates
