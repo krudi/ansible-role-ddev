@@ -14,9 +14,19 @@ on:
     schedule:
         - cron: "0 22 * * 5"
 
+defaults:
+    run:
+        working-directory: "ansible-role-ddev"
+
+concurrency:
+    group: test-${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+permissions:
+    contents: read
+
 jobs:
-    prepare:
-        name: Build test instance
+    test:
         runs-on: ubuntu-latest
         strategy:
             matrix:
@@ -25,10 +35,16 @@ jobs:
                       playbook: converge.yml
                     - distro: ubuntu2204
                       playbook: converge.yml
+                    - distro: debian12
+                      playbook: converge.yml
+                    - distro: debian13
+                      playbook: converge.yml
 
         steps:
             - name: Checkout the current branch
               uses: actions/checkout@v4
+              with:
+                  path: "ansible-role-ddev"
 
             - name: Setup of Python 3
               uses: actions/setup-python@v5

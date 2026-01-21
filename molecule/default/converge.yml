@@ -9,15 +9,7 @@
         update_cache: true
         cache_valid_time: 86400
 
-    - name: Ensure required packages are installed
-      ansible.builtin.package:
-        name: "{{ dependency }}"
-        state: present
-      loop: "{{ ddev_dependencies }}"
-      loop_control:
-        loop_var: dependency
-
   roles:
-    - role: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') | basename }}"
+    - role: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}"
       ddev:
         install: true
