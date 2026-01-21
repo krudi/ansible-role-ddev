@@ -1,0 +1,7 @@
+---
+# Dependencies for Debian 13 Trixie (software-properties-common not available).
+# See https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1038747
+ddev_dependencies:
+  - apt-transport-https
+  - ca-certificates
+  - curl
