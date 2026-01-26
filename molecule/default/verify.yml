@@ -6,3 +6,5 @@
       ansible.builtin.command: ddev --version
       register: ddev_version
       changed_when: false
+      environment:
+        DDEV_ALLOW_ROOT: "1"
