@@ -1,0 +1,11 @@
+---
+argument_specs:
+  main:
+    short_description: Install DDEV for local PHP development.
+    options:
+      ddev:
+        type: dict
+        options:
+          install:
+            type: bool
+            default: true

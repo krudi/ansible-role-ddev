@@ -1,0 +1,8 @@
+---
+- name: Verify
+  hosts: all
+  tasks:
+    - name: Check ddev binary is available
+      ansible.builtin.command: ddev --version
+      register: ddev_version
+      changed_when: false
