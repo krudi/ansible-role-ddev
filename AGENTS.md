@@ -40,19 +40,9 @@ molecule test      # full test (if molecule configured)
 
 ## Rules
 
-@.ai/rules/ansible.md
+@.ai/rules/ansible.md @.ai/memory/lessons.md @.ai/skills/commit/SKILL.md @.ai/skills/pr/SKILL.md @.ai/skills/retrospective/SKILL.md
 
----
-
-## For Claude Code
-
-### Rules loaded automatically
-
-| Rule file | Applied to |
-|-----------|---|
-| `.ai/rules/ansible.md` | `**/*.yml`, `**/*.yaml` |
-
-### Constraints
+## Constraints
 
 - Commits use conventional commits format (see global `AGENTS.md`)
 - Role installs DDEV **and** Docker as a dependency — check `defaults/main.yml` for version variables
