@@ -1,50 +1,110 @@
-# Ansible Role — DDEV
+# Agent instructions
 
-Ansible role that installs DDEV (Docker-based PHP development environment) and its Docker dependency.
+This file is the canonical instruction source for every coding agent. `CLAUDE.md` only imports it, because Claude Code
+does not read `AGENTS.md` by itself. Start every agent session at the repository root: Claude Code expands the
+`@AGENTS.md` import only for the working directory's `CLAUDE.md`, and Codex started inside a subdirectory loads only
+that directory's `AGENTS.md` and none of the repository skills. Skills, adapters and nested instruction files point
+here; they never restate rules.
 
-## Stack
+`ansible-role-ddev` is an Ansible role, published to Ansible Galaxy as `krudi.ddev`, that installs DDEV from its
+signed APT repository. Docker comes from the `geerlingguy.docker` role dependency.
 
-- Ansible / YAML
+## Where knowledge lives
 
-## Commands
+| Question                                         | Source                                                 |
+| ------------------------------------------------ | ------------------------------------------------------ |
+| What the role does, how to use it, its variables | `README.md`                                            |
+| Variable defaults and their types                | `defaults/main.yml`, `meta/argument_specs.yml`         |
+| Supported platforms and role dependencies        | `meta/main.yml`                                        |
+| Test scenario (platforms, sequence, assertions)  | `molecule/default/`                                    |
+| CI lint, test matrix and Galaxy release          | `.github/workflows/`                                   |
+| Branch and commit message conventions            | `.github/CONTRIBUTING.md`                              |
+| Repeatable workflows (commit, PR, retrospective) | `.ai/skills/<name>/SKILL.md` — pick by its description |
 
-```bash
-ansible-lint       # lint the role
-molecule test      # full test (if molecule configured)
-```
+This file owns the agent conventions. Do not create competing documentation; update the owner instead.
 
-## Onboarding
+## Non-negotiables
 
-**Prerequisites:** Ansible, Python, molecule (for testing).
+- The role is idempotent: a second run reports no changes. Molecule's `idempotence` step enforces it.
+- Only Ubuntu jammy/noble and Debian bookworm/trixie are supported; every include in `tasks/main.yml` is guarded by
+  `ansible_os_family == "Debian"`.
+- `geerlingguy.docker` is a role dependency declared in `meta/main.yml`, `requirements.yml` and
+  `molecule/default/requirements.yml`; change all three together.
+- DDEV installs system-wide from `https://pkg.ddev.com/apt/` with its key in `/etc/apt/keyrings/ddev.gpg`; no DDEV
+  version is pinned, `ddev.install` only toggles the install.
+- Never read or print `.env` values or other secrets, including the `ANSIBLE_GALAXY_API_KEY` release secret.
+- Do not add explanatory or rationale comments in code; explain in chat or in `README.md` instead.
 
-1. `ansible-lint` — verify the role passes linting
-2. `molecule converge` — apply the role to a test instance
-3. `molecule test` — full test including idempotency check
+## Conventions
 
----
+- `tasks/main.yml` is the entry point and only includes the `setup-*.yml` task files. `defaults/main.yml` holds the
+  public variables (lowest precedence), `vars/main.yml` the internal ones, `meta/main.yml` the Galaxy metadata and
+  dependencies, `templates/*.j2` Jinja2 templates and `files/` static files.
+- `vars/<Distribution>-<release>.yml` (currently `Debian-trixie.yml`) overrides `vars/main.yml` per release, loaded
+  with `with_first_found` in `tasks/main.yml`.
+- Use fully qualified collection names (`ansible.builtin.package`, not `package`).
+- Task names are descriptive sentence case; handler names describe the action.
+- Variables are `snake_case`. Public variables live in a dict named after the tool (`ddev.install`); internal variables
+  in `vars/` are prefixed with the role name (`ddev_dependencies`).
+- Every public variable has a default in `defaults/main.yml`, an entry in `meta/argument_specs.yml` and a row in the
+  `README.md` variables table; change all three together.
+- Set `become: true` on the tasks that need it, never at play level.
+- Prefer `ansible.builtin.template` over `ansible.builtin.copy` for config files that vary per host.
+- Adding a platform means updating `meta/main.yml`, the platforms in `molecule/default/molecule.yml`, the matrix in
+  `.github/workflows/tests.yaml` and `README.md` together.
+- `ansible-lint` runs the default rules with `yaml` and `role-name` skipped (`.ansible-lint`). YAML is indented with 2
+  spaces, workflow files with 4 (`.editorconfig`).
 
-## Testing
+## Working rules
 
-- Run before every PR: `ansible-lint && molecule test`
-- Idempotency is required: running the role twice must produce no changes
-- Test on both Debian/Ubuntu and RHEL if changes affect platform-specific tasks
+- Run commands from the repository root. The Python tooling is pinned in `requirements-ci.txt` (Ansible, Molecule and
+  its Docker driver) and `requirements-release.txt`; CI uses Python 3.11 and runs `ansible-lint` through the
+  `ansible/ansible-lint` action. Do not install or upgrade tooling unless asked.
+- Never commit, amend or push unless asked. Stage only files that belong to the task; leave unrelated dirty files,
+  owner-local files and untracked scratch exactly as found — never restore, reset or stash them to make a task easier.
+- Generated output (`*.retry`, `.cache/`, `.venv/`, Molecule and ansible-lint state) is never committed.
+- Molecule creates and destroys its own Docker containers (`instance-ubuntu2404`, `instance-ubuntu2204`,
+  `instance-debian12`, `instance-debian13`). Never start, stop or remove any other container on the host; after an
+  interrupted run, clean up only with `molecule destroy`.
+- Do not modify unrelated files solely to make a check pass, and never silently skip a failing check: report the exact
+  command, the failure, and whether it looks related. If `ansible-lint` or `molecule` is not installed, say so and give
+  the command for the owner instead.
 
----
+## Verification
 
-## Notes
+Verification is proportional to the change. While iterating, run the row(s) that match the files you touched; before
+declaring a change complete, widen to every area it crosses. `molecule test` provisions real containers, so run it
+deliberately rather than as a routine check.
 
-- Depends on a Docker role — ensure Docker is installed before this role runs
-- DDEV version is controlled by a role variable (see `defaults/main.yml`)
+| Changed area                                                       | While iterating                                        | Before completion, when applicable                                      |
+| ------------------------------------------------------------------ | ------------------------------------------------------ | ----------------------------------------------------------------------- |
+| `tasks/`, `handlers/`, `templates/`, `defaults/`, `vars/`, `meta/` | `ansible-lint`                                         | `molecule test`                                                         |
+| `molecule/`                                                        | `ansible-lint`; `molecule converge && molecule verify` | `molecule test`                                                         |
+| `.github/workflows/`                                               | —                                                      | The `Lint` and `Test (Molecule)` workflows on the PR                    |
+| `README.md`, `AGENTS.md`, `.ai/`                                   | —                                                      | Variable tables match `defaults/main.yml` and `meta/argument_specs.yml` |
 
----
+`molecule test` runs the full `test_sequence` in `molecule/default/molecule.yml` (syntax, converge, idempotence,
+verify, destroy) on all four platforms; without `MOLECULE_DISTRO` each instance uses its own distro image. CI sets
+`MOLECULE_DISTRO` per matrix entry and also runs weekly.
 
-## Rules
+## AI workflow layout
 
-@.ai/rules/ansible.md @.ai/memory/lessons.md @.ai/skills/commit/SKILL.md @.ai/skills/pr/SKILL.md @.ai/skills/retrospective/SKILL.md
+| Path                                          | Holds                                                                                                                          |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `.ai/skills/<name>/`                          | Project skills — the only copy of each; generated files go to the skill's own `output/`, ignored by a skill-local `.gitignore` |
+| `.agents/skills/`                             | Third-party skills managed by `npx skills` (`skills-lock.json`), plus a symlink per project skill so Codex discovers it        |
+| `.claude/skills/`                             | Symlinks only — Claude Code's discovery path into both of the above                                                            |
+| `.claude/settings.json`, `.codex/config.toml` | Per-agent settings only; keep their environment policy in sync                                                                 |
+| `.ai/audits/<YYYY-MM-DD>-<slug>/README.md`    | An audit lives here only while it holds unresolved work                                                                        |
 
-## Constraints
+## Project skills
 
-- Commits use conventional commits format (see global `AGENTS.md`)
-- Role installs DDEV **and** Docker as a dependency — check `defaults/main.yml` for version variables
-- Tasks run as a privileged user — ensure privilege escalation is handled via `become`
-- Test with `molecule test` before merging changes that affect idempotency
+All ansible-role-ddev-owned skills live canonically under `.ai/skills/`.
+
+Agent-specific skill directories such as `.claude/skills/` and `.agents/skills/` must contain only adapters or symlinks
+to those project skills when required for tool discovery (`ln -s ../../.ai/skills/<name>` in both).
+
+Never maintain duplicate copies of an ansible-role-ddev-owned `SKILL.md`.
+
+When an audit is done, move its durable conclusions into `AGENTS.md` or `README.md`, carry any open item to a tracked
+place, and delete the folder — git history is the archive. Audits carry no screenshots or raw dumps.
