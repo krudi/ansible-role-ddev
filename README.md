@@ -35,7 +35,9 @@ Example use of a role, that will install the latest version of [DDEV](https://dd
 
 ## Testing
 
-This role includes a [Molecule](https://ansible.readthedocs.io/projects/molecule/) test scenario under `molecule/default`, which verifies the role against Ubuntu 22.04/24.04 and Debian 12/13 Docker instances. Run it with `molecule test` (requires Docker and provisions real containers, so run it deliberately rather than as part of routine checks).
+This role includes a [Molecule](https://ansible.readthedocs.io/projects/molecule/) test scenario under `molecule/default`, which verifies the role against Ubuntu 22.04/24.04 and Debian 12/13 Docker instances. Run it with `uvx --with-requirements requirements-ci.txt --from molecule molecule test` (requires Docker and provisions real containers, so run it deliberately rather than as part of routine checks).
+
+Lint the role with `uvx --with-requirements requirements-ci.txt ansible-lint`; `uvx lefthook install` runs it on staged files before each commit.
 
 ## Issue
 

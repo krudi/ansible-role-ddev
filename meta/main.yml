@@ -22,4 +22,4 @@ galaxy_info:
 dependencies:
   - name: geerlingguy.docker
     src: https://github.com/geerlingguy/ansible-role-docker
-    version: master
+    version: 8.0.0
